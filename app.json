@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Sakeena",
+    "slug": "sakeena",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0C0E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sakeena.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0C0E"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.sakeena.app"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#C9A962"
+        }
+      ],
+      "expo-font",
+      "expo-sqlite"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
