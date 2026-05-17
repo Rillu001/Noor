@@ -1,4 +1,5 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -8,10 +9,13 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { ResetDhikrDialog } from "../components/ui/ResetDhikrDialog";
 import { GlassCard } from "../components/ui/GlassCard";
 import { PillButton } from "../components/ui/PillButton";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import type { WorshipStackParamList } from "../navigation/types";
 import { colors, radii, spacing } from "../constants/theme";
 import { useDhikrStore } from "../store/useDhikrStore";
 
@@ -20,6 +24,8 @@ const GOALS = [33, 99, 100];
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function DhikrScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<WorshipStackParamList>>();
   const {
     phrase,
     phrases,
@@ -32,10 +38,12 @@ export function DhikrScreen() {
     setTargetCount,
     hydrate,
     increment,
-    reset,
+    resetToday,
+    resetAllHistory,
   } = useDhikrStore();
 
   const [resetDialogVisible, setResetDialogVisible] = useState(false);
+  const [historyConfirmVisible, setHistoryConfirmVisible] = useState(false);
   const scale = useSharedValue(1);
 
   useFocusEffect(
@@ -64,13 +72,27 @@ export function DhikrScreen() {
     }
   };
 
-  const handleResetConfirm = async () => {
+  const handleResetToday = async () => {
     setResetDialogVisible(false);
-    await reset();
+    await resetToday();
+  };
+
+  const handleResetAllHistory = () => {
+    setResetDialogVisible(false);
+    setHistoryConfirmVisible(true);
+  };
+
+  const handleConfirmClearHistory = async () => {
+    setHistoryConfirmVisible(false);
+    await resetAllHistory();
   };
 
   return (
     <ScreenContainer>
+      <StackBackButton
+        label="Salah"
+        onPress={() => navigation.navigate("Salah")}
+      />
       <SectionHeader
         title="Dhikr Counter"
         subtitle="Tap with presence and peace"
@@ -167,18 +189,26 @@ export function DhikrScreen() {
         onPress={() => setResetDialogVisible(true)}
         style={styles.resetBtn}
       >
-        <Text style={styles.resetText}>Reset today</Text>
+        <Text style={styles.resetText}>Reset</Text>
       </Pressable>
 
-      <ConfirmDialog
+      <ResetDhikrDialog
         visible={resetDialogVisible}
-        title="Reset counter"
-        message={`Reset today's count for "${phrase}"? This cannot be undone.`}
-        confirmLabel="Reset"
-        cancelLabel="Keep count"
-        variant="destructive"
-        onConfirm={handleResetConfirm}
+        phrase={phrase}
+        onResetToday={handleResetToday}
+        onResetAllHistory={handleResetAllHistory}
         onCancel={() => setResetDialogVisible(false)}
+      />
+
+      <ConfirmDialog
+        visible={historyConfirmVisible}
+        title="Clear all history?"
+        message="This will permanently delete all dhikr counts for every phrase and day, including your weekly chart and all-time total. This cannot be undone."
+        confirmLabel="Clear all"
+        cancelLabel="Keep history"
+        variant="destructive"
+        onConfirm={handleConfirmClearHistory}
+        onCancel={() => setHistoryConfirmVisible(false)}
       />
     </ScreenContainer>
   );

@@ -68,6 +68,21 @@ export async function resetDhikrForDate(
   await upsertDhikrSession(db, phrase, date, targetCount, 0);
 }
 
+/** Removes all saved counts for a phrase across every day. */
+export async function clearDhikrPhraseHistory(
+  db: SQLiteDatabase,
+  phrase: string
+): Promise<void> {
+  await db.runAsync("DELETE FROM dhikr_sessions WHERE phrase = ?", [phrase]);
+}
+
+/** Removes every dhikr session (all phrases and dates). */
+export async function clearAllDhikrHistory(
+  db: SQLiteDatabase
+): Promise<void> {
+  await db.runAsync("DELETE FROM dhikr_sessions");
+}
+
 export type DhikrDayStat = {
   date: string;
   label: string;

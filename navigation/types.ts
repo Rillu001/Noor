@@ -17,6 +17,7 @@ export type ReflectStackParamList = {
 
 export type MoreStackParamList = {
   MoreMenu: undefined;
+  Profile: undefined;
   SilentDeeds: undefined;
   Reminders: undefined;
   Insights: undefined;

@@ -3,7 +3,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, radii, spacing } from "../../constants/theme";
+import { getScreenTopPadding } from "../../constants/layout";
+import { authButtons } from "../../constants/authButtons";
+import { colors, spacing } from "../../constants/theme";
 import type { AuthStackParamList } from "../../navigation/types";
 
 export function WelcomeScreen() {
@@ -12,7 +14,9 @@ export function WelcomeScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.xl }]}>
+    <View
+      style={[styles.root, { paddingTop: insets.top + getScreenTopPadding(insets) }]}
+    >
       <LinearGradient
         colors={[colors.bg.primary, "#12141A", colors.bg.primary]}
         style={StyleSheet.absoluteFill}
@@ -29,15 +33,15 @@ export function WelcomeScreen() {
       <View style={[styles.actions, { paddingBottom: insets.bottom + spacing.lg }]}>
         <Pressable
           onPress={() => navigation.navigate("Register")}
-          style={styles.primaryBtn}
+          style={authButtons.primary}
         >
-          <Text style={styles.primaryText}>Create account</Text>
+          <Text style={authButtons.primaryText}>Create account</Text>
         </Pressable>
         <Pressable
           onPress={() => navigation.navigate("Login")}
-          style={styles.secondaryBtn}
+          style={authButtons.secondary}
         >
-          <Text style={styles.secondaryText}>Sign in</Text>
+          <Text style={authButtons.secondaryText}>Sign in</Text>
         </Pressable>
       </View>
     </View>
@@ -75,28 +79,5 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: 12,
-  },
-  primaryBtn: {
-    backgroundColor: colors.accent.gold,
-    paddingVertical: 16,
-    borderRadius: radii.full,
-    alignItems: "center",
-  },
-  primaryText: {
-    color: colors.bg.primary,
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  secondaryBtn: {
-    paddingVertical: 16,
-    borderRadius: radii.full,
-    borderWidth: 1,
-    borderColor: colors.glass.border,
-    alignItems: "center",
-  },
-  secondaryText: {
-    color: colors.text.primary,
-    fontSize: 17,
-    fontWeight: "600",
   },
 });
