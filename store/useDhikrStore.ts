@@ -18,7 +18,8 @@ type DhikrState = {
   hydrate: (date?: string) => Promise<void>;
   hydrateStats: () => Promise<void>;
   increment: (date?: string) => Promise<void>;
-  reset: (date?: string) => Promise<void>;
+  resetToday: (date?: string) => Promise<void>;
+  resetAllHistory: () => Promise<void>;
 };
 
 export const useDhikrStore = create<DhikrState>((set, get) => ({
@@ -77,11 +78,24 @@ export const useDhikrStore = create<DhikrState>((set, get) => ({
     await get().hydrateStats();
   },
 
-  reset: async (date = toDateKey()) => {
+  resetToday: async (date = toDateKey()) => {
     const db = await getDatabase();
     const { phrase, targetCount } = get();
     await dhikrRepo.resetDhikrForDate(db, phrase, date, targetCount);
     set({ currentCount: 0 });
     await get().hydrateStats();
+  },
+
+  resetAllHistory: async () => {
+    const db = await getDatabase();
+    await dhikrRepo.clearAllDhikrHistory(db);
+    set({
+      currentCount: 0,
+      weekTotal: 0,
+      allTimeTotal: 0,
+      weeklyStats: get().weeklyStats.map((day) => ({ ...day, total: 0 })),
+    });
+    await get().hydrateStats();
+    await get().hydrate();
   },
 }));

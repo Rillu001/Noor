@@ -1,10 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Bell, ChevronRight, Eye, LogOut, TrendingUp, User } from "lucide-react-native";
+import { Bell, ChevronRight, Eye, LogOut, TrendingUp } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
-import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
 import { colors, radii, spacing } from "../constants/theme";
@@ -35,7 +34,6 @@ const MENU_ITEMS = [
 export function MoreMenuScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
-  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const [logoutVisible, setLogoutVisible] = useState(false);
 
@@ -43,29 +41,8 @@ export function MoreMenuScreen() {
     <ScreenContainer>
       <SectionHeader
         title="More"
-        subtitle="Choose a tool below"
+        subtitle="Tools and settings"
       />
-
-      {user ? (
-        <GlassCard style={styles.accountCard}>
-          <View style={styles.accountRow}>
-            <View style={styles.avatar}>
-              <User size={22} color={colors.accent.gold} />
-            </View>
-            <View style={styles.accountText}>
-              <Text style={styles.accountName}>{user.name}</Text>
-              <Text style={styles.accountEmail}>{user.email}</Text>
-            </View>
-          </View>
-          <Pressable
-            onPress={() => setLogoutVisible(true)}
-            style={styles.logoutBtn}
-          >
-            <LogOut size={18} color={colors.accent.gold} />
-            <Text style={styles.logoutText}>Sign out</Text>
-          </Pressable>
-        </GlassCard>
-      ) : null}
 
       {MENU_ITEMS.map((item) => (
         <Pressable
@@ -83,6 +60,20 @@ export function MoreMenuScreen() {
           <ChevronRight size={20} color={colors.text.dim} />
         </Pressable>
       ))}
+
+      <Pressable
+        onPress={() => setLogoutVisible(true)}
+        style={[styles.row, styles.logoutRow]}
+      >
+        <View style={[styles.iconWrap, styles.logoutIconWrap]}>
+          <LogOut size={22} color={colors.accent.gold} />
+        </View>
+        <View style={styles.text}>
+          <Text style={styles.title}>Sign out</Text>
+          <Text style={styles.subtitle}>Sign in again anytime</Text>
+        </View>
+        <ChevronRight size={20} color={colors.text.dim} />
+      </Pressable>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Noor</Text>
@@ -107,52 +98,6 @@ export function MoreMenuScreen() {
 }
 
 const styles = StyleSheet.create({
-  accountCard: {
-    marginBottom: spacing.lg,
-  },
-  accountRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.md,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(201, 169, 98, 0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 14,
-  },
-  accountText: {
-    flex: 1,
-  },
-  accountName: {
-    color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  accountEmail: {
-    color: colors.text.muted,
-    fontSize: 14,
-    marginTop: 2,
-  },
-  logoutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: radii.full,
-    borderWidth: 1,
-    borderColor: colors.accent.gold,
-    backgroundColor: "rgba(201, 169, 98, 0.08)",
-  },
-  logoutText: {
-    color: colors.accent.gold,
-    fontSize: 15,
-    fontWeight: "600",
-  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -163,6 +108,10 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 12,
   },
+  logoutRow: {
+    marginTop: spacing.sm,
+    borderColor: "rgba(201, 169, 98, 0.25)",
+  },
   iconWrap: {
     width: 44,
     height: 44,
@@ -171,6 +120,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
+  },
+  logoutIconWrap: {
+    backgroundColor: "rgba(201, 169, 98, 0.18)",
   },
   text: {
     flex: 1,

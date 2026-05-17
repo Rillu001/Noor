@@ -150,3 +150,58 @@ export async function restoreSession(
 export async function logoutUser(): Promise<void> {
   await clearSession();
 }
+
+export async function updateUserName(
+  db: SQLiteDatabase,
+  userId: number,
+  name: string
+): Promise<AuthUser> {
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    throw new Error("Please enter your name.");
+  }
+
+  await db.runAsync("UPDATE users SET name = ? WHERE id = ?", [
+    trimmedName,
+    userId,
+  ]);
+
+  const user = await getUserById(db, userId);
+  if (!user) {
+    throw new Error("Could not update profile.");
+  }
+  return user;
+}
+
+export async function changeUserPassword(
+  db: SQLiteDatabase,
+  userId: number,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  if (newPassword.length < 6) {
+    throw new Error("New password must be at least 6 characters.");
+  }
+
+  const row = await db.getFirstAsync<{
+    password_hash: string;
+    salt: string;
+  }>("SELECT password_hash, salt FROM users WHERE id = ?", [userId]);
+
+  if (!row) {
+    throw new Error("Account not found.");
+  }
+
+  const currentHash = await hashPassword(currentPassword, row.salt);
+  if (currentHash !== row.password_hash) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  const salt = await generateSalt();
+  const passwordHash = await hashPassword(newPassword, salt);
+
+  await db.runAsync(
+    "UPDATE users SET password_hash = ?, salt = ? WHERE id = ?",
+    [passwordHash, salt, userId]
+  );
+}

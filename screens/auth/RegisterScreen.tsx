@@ -3,17 +3,14 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StackBackButton } from "../../components/ui/StackBackButton";
+import { AuthScreenLayout } from "../../components/ui/AuthScreenLayout";
+import { authButtons } from "../../constants/authButtons";
 import { colors, radii, spacing } from "../../constants/theme";
 import type { AuthStackParamList } from "../../navigation/types";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -21,7 +18,6 @@ import { useAuthStore } from "../../store/useAuthStore";
 export function RegisterScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const insets = useSafeAreaInsets();
   const register = useAuthStore((s) => s.register);
 
   const [name, setName] = useState("");
@@ -48,128 +44,102 @@ export function RegisterScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { paddingTop: insets.top }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingBottom: insets.bottom + spacing.lg },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
-        <StackBackButton
-          label="Back"
-          onPress={() => navigation.navigate("Welcome")}
-        />
-
-        <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Begin your peaceful journey with Noor</Text>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your name"
-            placeholderTextColor={colors.text.dim}
-            autoComplete="name"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={colors.text.dim}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="At least 6 characters"
-            placeholderTextColor={colors.text.dim}
-            secureTextEntry
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Confirm password</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Repeat password"
-            placeholderTextColor={colors.text.dim}
-            secureTextEntry
-          />
-        </View>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <Pressable
-          onPress={handleRegister}
-          style={[styles.submitBtn, loading && styles.submitDisabled]}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.bg.primary} />
-          ) : (
-            <Text style={styles.submitText}>Create account</Text>
-          )}
-        </Pressable>
-
+    <AuthScreenLayout
+      title="Create account"
+      subtitle="Begin your journey with calm and consistency"
+      footer={
         <Pressable onPress={() => navigation.navigate("Login")}>
           <Text style={styles.switchText}>
             Already have an account?{" "}
             <Text style={styles.switchLink}>Sign in</Text>
           </Text>
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    >
+      <View style={styles.field}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Your name"
+          placeholderTextColor={colors.text.dim}
+          autoComplete="name"
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          placeholderTextColor={colors.text.dim}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="At least 6 characters"
+          placeholderTextColor={colors.text.dim}
+          secureTextEntry
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Confirm password</Text>
+        <TextInput
+          style={styles.input}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          placeholder="Repeat password"
+          placeholderTextColor={colors.text.dim}
+          secureTextEntry
+        />
+      </View>
+
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <Pressable
+        onPress={handleRegister}
+        style={[styles.submitBtn, loading && styles.submitDisabled]}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color={colors.text.primary} />
+        ) : (
+          <Text style={styles.submitText}>Create account</Text>
+        )}
+      </Pressable>
+
+      <Pressable
+        onPress={() => navigation.navigate("Welcome")}
+        style={[authButtons.secondary, styles.backBtn]}
+      >
+        <Text style={authButtons.secondaryText}>Back</Text>
+      </Pressable>
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bg.primary,
-  },
-  scroll: {
-    paddingHorizontal: spacing.lg,
-    flexGrow: 1,
-  },
-  title: {
-    color: colors.text.primary,
-    fontSize: 32,
-    fontWeight: "700",
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    color: colors.text.muted,
-    fontSize: 16,
-    marginBottom: spacing.xl,
-  },
   field: {
     marginBottom: spacing.md,
   },
   label: {
     color: colors.text.muted,
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 13,
+    fontWeight: "600",
     marginBottom: 8,
+    letterSpacing: 0.3,
   },
   input: {
     backgroundColor: colors.glass.fill,
@@ -185,14 +155,14 @@ const styles = StyleSheet.create({
     color: colors.accent.beige,
     fontSize: 14,
     marginBottom: spacing.md,
+    lineHeight: 20,
   },
   submitBtn: {
     backgroundColor: colors.accent.emerald,
     paddingVertical: 16,
     borderRadius: radii.full,
     alignItems: "center",
-    marginTop: spacing.sm,
-    marginBottom: spacing.lg,
+    marginTop: spacing.xs,
   },
   submitDisabled: {
     opacity: 0.7,
@@ -201,6 +171,9 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 17,
     fontWeight: "700",
+  },
+  backBtn: {
+    marginTop: spacing.sm,
   },
   switchText: {
     color: colors.text.muted,

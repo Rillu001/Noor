@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode } from "react";
 import { ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarClearance } from "../../constants/layout";
+import { getScreenTopPadding, getTabBarClearance } from "../../constants/layout";
 import { colors, spacing } from "../../constants/theme";
 
 type ScreenContainerProps = {
@@ -20,13 +20,14 @@ export function ScreenContainer({
 }: ScreenContainerProps) {
   const insets = useSafeAreaInsets();
   const bottomPadding = getTabBarClearance(insets);
+  const topPadding = getScreenTopPadding(insets);
 
   const inner = (
     <View
       style={[
         styles.inner,
         padded && styles.padded,
-        { paddingTop: spacing.md },
+        { paddingTop: topPadding },
       ]}
     >
       {children}

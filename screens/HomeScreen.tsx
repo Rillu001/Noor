@@ -12,6 +12,7 @@ import { PrayerCard } from "../components/salah/PrayerCard";
 import { GlassCard } from "../components/ui/GlassCard";
 import { MotivationBanner } from "../components/ui/MotivationBanner";
 import { ProgressRing } from "../components/ui/ProgressRing";
+import { HomeHeader } from "../components/ui/HomeHeader";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
 import { StreakBadge } from "../components/ui/StreakBadge";
@@ -25,7 +26,6 @@ import { getTodaySunnah } from "../database/repositories/sunnah";
 import type { TabParamList } from "../navigation/types";
 import { useHabitStore } from "../store/useHabitStore";
 import { usePrayerStore } from "../store/usePrayerStore";
-import { formatDisplayDate, getGreeting } from "../utils/dates";
 
 export function HomeScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
@@ -57,11 +57,7 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <Text style={styles.greeting}>{getGreeting()}</Text>
-        <Text style={styles.brand}>Noor</Text>
-        <Text style={styles.date}>{formatDisplayDate()}</Text>
-      </View>
+      <HomeHeader />
 
       {quote ? (
         <View style={styles.quoteWrap}>
@@ -88,17 +84,22 @@ export function HomeScreen() {
       </View>
       <Pressable
         onPress={() => navigation.navigate("Worship", { screen: "Salah" })}
+        style={styles.linkWrap}
       >
         <Text style={styles.link}>Open Salah tracker →</Text>
       </Pressable>
 
       <View style={styles.statsRow}>
         <GlassCard style={styles.statCard}>
-          <ProgressRing progress={habitPercent} size={72} />
+          <View style={styles.statVisual}>
+            <ProgressRing progress={habitPercent} size={72} />
+          </View>
           <Text style={styles.statLabel}>Habits today</Text>
         </GlassCard>
         <GlassCard style={styles.statCard}>
-          <Text style={styles.streakNumber}>{streak}</Text>
+          <View style={styles.statVisual}>
+            <Text style={styles.streakNumber}>{streak}</Text>
+          </View>
           <Text style={styles.statLabel}>Salah streak</Text>
         </GlassCard>
       </View>
@@ -167,25 +168,6 @@ function QuickAction({
 }
 
 const styles = StyleSheet.create({
-  header: {
-    marginBottom: spacing.lg,
-  },
-  greeting: {
-    color: colors.text.muted,
-    fontSize: 15,
-  },
-  brand: {
-    color: colors.text.primary,
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: -0.5,
-    marginTop: 4,
-  },
-  date: {
-    color: colors.text.dim,
-    fontSize: 14,
-    marginTop: 6,
-  },
   quoteWrap: {
     marginBottom: spacing.lg,
   },
@@ -195,10 +177,14 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: spacing.sm,
   },
+  linkWrap: {
+    paddingVertical: spacing.md,
+    marginBottom: spacing.xl,
+  },
   link: {
     color: colors.accent.gold,
-    fontSize: 14,
-    marginBottom: spacing.lg,
+    fontSize: 15,
+    fontWeight: "500",
   },
   statsRow: {
     flexDirection: "row",
@@ -207,18 +193,27 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
+    minHeight: 148,
     alignItems: "center",
-    paddingVertical: spacing.lg,
+    justifyContent: "center",
+    paddingVertical: spacing.md,
+  },
+  statVisual: {
+    height: 72,
+    alignItems: "center",
+    justifyContent: "center",
   },
   statLabel: {
     color: colors.text.muted,
     fontSize: 13,
     marginTop: 12,
+    textAlign: "center",
   },
   streakNumber: {
     color: colors.accent.gold,
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: "700",
+    lineHeight: 36,
   },
   sunnahCard: {
     marginBottom: spacing.lg,

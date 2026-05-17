@@ -1,9 +1,12 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import type { GrowStackParamList } from "../navigation/types";
 import { colors, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import type { SunnahItem } from "../database/repositories/sunnah";
@@ -11,6 +14,8 @@ import { getTodaySunnah, markSunnahViewed } from "../database/repositories/sunna
 import { toDateKey } from "../utils/dates";
 
 export function SunnahScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<GrowStackParamList>>();
   const [item, setItem] = useState<SunnahItem | null>(null);
 
   useFocusEffect(
@@ -28,9 +33,18 @@ export function SunnahScreen() {
     }
   }
 
+  function goBackToGrow() {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Habits");
+    }
+  }
+
   if (!item) {
     return (
       <ScreenContainer>
+        <StackBackButton label="Grow" onPress={goBackToGrow} />
         <SectionHeader title="Today's Sunnah" />
         <Text style={styles.loading}>Loading...</Text>
       </ScreenContainer>
@@ -39,6 +53,7 @@ export function SunnahScreen() {
 
   return (
     <ScreenContainer>
+      <StackBackButton label="Grow" onPress={goBackToGrow} />
       <SectionHeader
         title="Today's Sunnah"
         subtitle="A small step toward the Prophetic way"

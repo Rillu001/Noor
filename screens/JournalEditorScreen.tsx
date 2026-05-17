@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
+import { StackBackButton } from "../components/ui/StackBackButton";
 import { colors, radii, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import {
@@ -67,25 +68,27 @@ export function JournalEditorScreen() {
 
   return (
     <ScreenContainer scroll={false}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.cancel}>Cancel</Text>
-        </Pressable>
-        <View style={styles.headerActions}>
-          {entryId ? (
-            <Pressable
-              onPress={() => setDeleteVisible(true)}
-              style={styles.deleteBtn}
-              accessibilityLabel="Delete entry"
-            >
-              <Trash2 size={20} color={colors.accent.gold} />
-              <Text style={styles.delete}>Delete</Text>
-            </Pressable>
-          ) : null}
-          <Pressable onPress={handleSave}>
-            <Text style={styles.save}>Save</Text>
+      <StackBackButton
+        label="Journal"
+        onPress={() => navigation.goBack()}
+      />
+
+      <View style={styles.toolbar}>
+        {entryId ? (
+          <Pressable
+            onPress={() => setDeleteVisible(true)}
+            style={styles.deleteBtn}
+            accessibilityLabel="Delete entry"
+          >
+            <Trash2 size={20} color={colors.accent.gold} />
+            <Text style={styles.delete}>Delete</Text>
           </Pressable>
-        </View>
+        ) : (
+          <View />
+        )}
+        <Pressable onPress={handleSave} style={styles.saveBtn}>
+          <Text style={styles.save}>Save</Text>
+        </Pressable>
       </View>
 
       <View style={styles.tags}>
@@ -136,16 +139,12 @@ export function JournalEditorScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  toolbar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: spacing.lg,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
+    marginTop: -spacing.sm,
   },
   deleteBtn: {
     flexDirection: "row",
@@ -159,9 +158,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  cancel: {
-    color: colors.text.muted,
-    fontSize: 16,
+  saveBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   save: {
     color: colors.accent.gold,

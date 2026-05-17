@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { StackActions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { BlurView } from "expo-blur";
 import {
@@ -19,6 +20,7 @@ import { InsightsScreen } from "../screens/InsightsScreen";
 import { JournalEditorScreen } from "../screens/JournalEditorScreen";
 import { JournalScreen } from "../screens/JournalScreen";
 import { MoreMenuScreen } from "../screens/MoreMenuScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 import { RemindersScreen } from "../screens/RemindersScreen";
 import { SalahScreen } from "../screens/SalahScreen";
 import { SilentDeedsScreen } from "../screens/SilentDeedsScreen";
@@ -89,6 +91,7 @@ function MoreNavigator() {
       screenOptions={stackScreenOptions}
     >
       <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} />
+      <MoreStack.Screen name="Profile" component={ProfileScreen} />
       <MoreStack.Screen name="SilentDeeds" component={SilentDeedsScreen} />
       <MoreStack.Screen name="Reminders" component={RemindersScreen} />
       <MoreStack.Screen name="Insights" component={InsightsScreen} />
@@ -148,7 +151,25 @@ export function TabNavigator() {
           tabBarLabel: "Worship",
         }}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
+            e.preventDefault();
+            const state = navigation.getState();
+            const worshipRoute = state.routes.find((r) => r.name === "Worship");
+            const nested = worshipRoute?.state as
+              | { index?: number; key?: string }
+              | undefined;
+
+            if (
+              nested?.key &&
+              nested.index !== undefined &&
+              nested.index > 0
+            ) {
+              navigation.dispatch({
+                ...StackActions.popToTop(),
+                target: nested.key,
+              });
+            }
+
             navigation.navigate("Worship", { screen: "Salah" });
           },
         })}
@@ -157,7 +178,25 @@ export function TabNavigator() {
         name="Grow"
         component={GrowNavigator}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
+            e.preventDefault();
+            const state = navigation.getState();
+            const growRoute = state.routes.find((r) => r.name === "Grow");
+            const nested = growRoute?.state as
+              | { index?: number; key?: string }
+              | undefined;
+
+            if (
+              nested?.key &&
+              nested.index !== undefined &&
+              nested.index > 0
+            ) {
+              navigation.dispatch({
+                ...StackActions.popToTop(),
+                target: nested.key,
+              });
+            }
+
             navigation.navigate("Grow", { screen: "Habits" });
           },
         })}
@@ -166,7 +205,25 @@ export function TabNavigator() {
         name="Reflect"
         component={ReflectNavigator}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
+            e.preventDefault();
+            const state = navigation.getState();
+            const reflectRoute = state.routes.find((r) => r.name === "Reflect");
+            const nested = reflectRoute?.state as
+              | { index?: number; key?: string }
+              | undefined;
+
+            if (
+              nested?.key &&
+              nested.index !== undefined &&
+              nested.index > 0
+            ) {
+              navigation.dispatch({
+                ...StackActions.popToTop(),
+                target: nested.key,
+              });
+            }
+
             navigation.navigate("Reflect", { screen: "Journal" });
           },
         })}
@@ -175,7 +232,25 @@ export function TabNavigator() {
         name="More"
         component={MoreNavigator}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
+            e.preventDefault();
+            const state = navigation.getState();
+            const moreRoute = state.routes.find((r) => r.name === "More");
+            const nested = moreRoute?.state as
+              | { index?: number; key?: string }
+              | undefined;
+
+            if (
+              nested?.key &&
+              nested.index !== undefined &&
+              nested.index > 0
+            ) {
+              navigation.dispatch({
+                ...StackActions.popToTop(),
+                target: nested.key,
+              });
+            }
+
             navigation.navigate("More", { screen: "MoreMenu" });
           },
         })}
