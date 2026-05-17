@@ -3,7 +3,7 @@ import { DEFAULT_HABITS } from "../constants/habits";
 import remindersSeed from "../constants/seed/reminders.json";
 import sunnahSeed from "../constants/seed/sunnah.json";
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 export async function runMigrations(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(`
@@ -18,11 +18,30 @@ export async function runMigrations(database: SQLiteDatabase): Promise<void> {
 
   if (currentVersion < 1) {
     await migrateV1(database);
+  }
+  if (currentVersion < 2) {
+    await migrateV2(database);
+  }
+
+  if (currentVersion < SCHEMA_VERSION) {
     await database.runAsync(
       "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?)",
       [String(SCHEMA_VERSION)]
     );
   }
+}
+
+async function migrateV2(database: SQLiteDatabase): Promise<void> {
+  await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
 }
 
 async function migrateV1(database: SQLiteDatabase): Promise<void> {

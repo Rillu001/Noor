@@ -9,7 +9,9 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
-import { colors } from "../constants/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TAB_BAR_CONTENT_HEIGHT } from "../constants/layout";
+import { colors, spacing } from "../constants/theme";
 import { DhikrScreen } from "../screens/DhikrScreen";
 import { HabitsScreen } from "../screens/HabitsScreen";
 import { HomeScreen } from "../screens/HomeScreen";
@@ -43,7 +45,10 @@ const stackScreenOptions = {
 
 function WorshipNavigator() {
   return (
-    <WorshipStack.Navigator screenOptions={stackScreenOptions}>
+    <WorshipStack.Navigator
+      initialRouteName="Salah"
+      screenOptions={stackScreenOptions}
+    >
       <WorshipStack.Screen name="Salah" component={SalahScreen} />
       <WorshipStack.Screen name="Dhikr" component={DhikrScreen} />
     </WorshipStack.Navigator>
@@ -52,7 +57,10 @@ function WorshipNavigator() {
 
 function GrowNavigator() {
   return (
-    <GrowStack.Navigator screenOptions={stackScreenOptions}>
+    <GrowStack.Navigator
+      initialRouteName="Habits"
+      screenOptions={stackScreenOptions}
+    >
       <GrowStack.Screen name="Habits" component={HabitsScreen} />
       <GrowStack.Screen name="Sunnah" component={SunnahScreen} />
     </GrowStack.Navigator>
@@ -61,7 +69,10 @@ function GrowNavigator() {
 
 function ReflectNavigator() {
   return (
-    <ReflectStack.Navigator screenOptions={stackScreenOptions}>
+    <ReflectStack.Navigator
+      initialRouteName="Journal"
+      screenOptions={stackScreenOptions}
+    >
       <ReflectStack.Screen name="Journal" component={JournalScreen} />
       <ReflectStack.Screen
         name="JournalEditor"
@@ -73,7 +84,10 @@ function ReflectNavigator() {
 
 function MoreNavigator() {
   return (
-    <MoreStack.Navigator screenOptions={stackScreenOptions}>
+    <MoreStack.Navigator
+      initialRouteName="MoreMenu"
+      screenOptions={stackScreenOptions}
+    >
       <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} />
       <MoreStack.Screen name="SilentDeeds" component={SilentDeedsScreen} />
       <MoreStack.Screen name="Reminders" component={RemindersScreen} />
@@ -91,11 +105,18 @@ function TabBarBackground() {
 }
 
 export function TabNavigator() {
+  const insets = useSafeAreaInsets();
+  const tabBarBottomInset = Math.max(insets.bottom, 12) + spacing.sm;
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: {
+          ...styles.tabBar,
+          height: TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
+          paddingBottom: tabBarBottomInset,
+        },
         tabBarBackground: () => <TabBarBackground />,
         tabBarActiveTintColor: colors.accent.gold,
         tabBarInactiveTintColor: colors.text.muted,
@@ -123,11 +144,42 @@ export function TabNavigator() {
       <Tab.Screen
         name="Worship"
         component={WorshipNavigator}
-        options={{ tabBarLabel: "Worship" }}
+        options={{
+          tabBarLabel: "Worship",
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate("Worship", { screen: "Salah" });
+          },
+        })}
       />
-      <Tab.Screen name="Grow" component={GrowNavigator} />
-      <Tab.Screen name="Reflect" component={ReflectNavigator} />
-      <Tab.Screen name="More" component={MoreNavigator} />
+      <Tab.Screen
+        name="Grow"
+        component={GrowNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate("Grow", { screen: "Habits" });
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Reflect"
+        component={ReflectNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate("Reflect", { screen: "Journal" });
+          },
+        })}
+      />
+      <Tab.Screen
+        name="More"
+        component={MoreNavigator}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate("More", { screen: "MoreMenu" });
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }
@@ -139,7 +191,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.glass.border,
     backgroundColor: "transparent",
     elevation: 0,
-    height: 88,
     paddingTop: 8,
   },
   tabBarOverlay: {

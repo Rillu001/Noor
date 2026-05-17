@@ -1,4 +1,6 @@
+import { format, parseISO } from "date-fns";
 import type { SQLiteDatabase } from "expo-sqlite";
+import { getLastNDays } from "../../utils/dates";
 
 export type DhikrSession = {
   id: number;
@@ -64,4 +66,57 @@ export async function resetDhikrForDate(
   targetCount: number
 ): Promise<void> {
   await upsertDhikrSession(db, phrase, date, targetCount, 0);
+}
+
+export type DhikrDayStat = {
+  date: string;
+  label: string;
+  total: number;
+};
+
+export async function getDhikrWeeklyStats(
+  db: SQLiteDatabase
+): Promise<DhikrDayStat[]> {
+  const days = getLastNDays(7);
+  const stats: DhikrDayStat[] = [];
+
+  for (const date of days) {
+    const row = await db.getFirstAsync<{ total: number }>(
+      `SELECT COALESCE(SUM(current_count), 0) as total
+       FROM dhikr_sessions WHERE date = ?`,
+      [date]
+    );
+    let label = date;
+    try {
+      label = format(parseISO(date), "EEE");
+    } catch {
+      // keep date key as label
+    }
+    stats.push({
+      date,
+      label,
+      total: row?.total ?? 0,
+    });
+  }
+
+  return stats;
+}
+
+export async function getDhikrWeekTotal(db: SQLiteDatabase): Promise<number> {
+  const days = getLastNDays(7);
+  if (days.length === 0) return 0;
+  const placeholders = days.map(() => "?").join(", ");
+  const row = await db.getFirstAsync<{ total: number }>(
+    `SELECT COALESCE(SUM(current_count), 0) as total
+     FROM dhikr_sessions WHERE date IN (${placeholders})`,
+    days
+  );
+  return row?.total ?? 0;
+}
+
+export async function getDhikrAllTimeTotal(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ total: number }>(
+    `SELECT COALESCE(SUM(current_count), 0) as total FROM dhikr_sessions`
+  );
+  return row?.total ?? 0;
 }

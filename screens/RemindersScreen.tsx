@@ -1,4 +1,5 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import {
   Alert,
@@ -11,6 +12,8 @@ import {
 import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import type { MoreStackParamList } from "../navigation/types";
 import { colors, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import type { ReminderSettings } from "../database/repositories/reminders";
@@ -20,7 +23,9 @@ import {
 } from "../database/repositories/reminders";
 import {
   cancelAllReminders,
+  canScheduleLocalNotifications,
   configureNotificationChannel,
+  getNotificationsUnavailableReason,
   requestNotificationPermissions,
   scheduleDailyReminder,
 } from "../utils/notifications";
@@ -28,7 +33,10 @@ import {
 const HOURS = [6, 7, 8, 9, 12, 18, 20, 21];
 
 export function RemindersScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
+  const notificationsUnavailable = getNotificationsUnavailableReason();
 
   const load = useCallback(async () => {
     const db = await getDatabase();
@@ -37,13 +45,23 @@ export function RemindersScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      configureNotificationChannel();
+      if (canScheduleLocalNotifications()) {
+        void configureNotificationChannel();
+      }
       load();
     }, [load])
   );
 
   async function toggleEnabled(value: boolean) {
     const db = await getDatabase();
+    if (value && !canScheduleLocalNotifications()) {
+      Alert.alert(
+        "Reminders unavailable",
+        notificationsUnavailable ??
+          "Daily reminders are not supported in this environment."
+      );
+      return;
+    }
     if (value) {
       const granted = await requestNotificationPermissions();
       if (!granted) {
@@ -77,10 +95,20 @@ export function RemindersScreen() {
 
   return (
     <ScreenContainer>
+      <StackBackButton
+        label="More"
+        onPress={() => navigation.navigate("MoreMenu")}
+      />
       <SectionHeader
         title="Gentle Reminders"
         subtitle="Warm encouragement, never guilt"
       />
+
+      {notificationsUnavailable ? (
+        <GlassCard style={styles.infoCard}>
+          <Text style={styles.infoText}>{notificationsUnavailable}</Text>
+        </GlassCard>
+      ) : null}
 
       <GlassCard>
         <View style={styles.row}>
@@ -93,6 +121,7 @@ export function RemindersScreen() {
           <Switch
             value={settings.enabled === 1}
             onValueChange={toggleEnabled}
+            disabled={!!notificationsUnavailable}
             trackColor={{
               false: colors.glass.border,
               true: colors.accent.emerald,
@@ -193,6 +222,15 @@ const styles = StyleSheet.create({
   },
   note: {
     color: colors.text.muted,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  infoCard: {
+    marginBottom: spacing.md,
+    borderColor: "rgba(201, 169, 98, 0.35)",
+  },
+  infoText: {
+    color: colors.accent.beige,
     fontSize: 14,
     lineHeight: 22,
   },

@@ -1,8 +1,8 @@
-import { useFocusEffect } from "@react-navigation/native";
-import { Plus } from "lucide-react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
-  Alert,
   Modal,
   Pressable,
   SectionList,
@@ -11,10 +11,14 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PillButton } from "../components/ui/PillButton";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import { getTabBarClearance } from "../constants/layout";
 import { colors, radii, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import {
@@ -24,13 +28,23 @@ import {
   getSilentDeeds,
   type SilentDeed,
 } from "../database/repositories/deeds";
+import type { MoreStackParamList } from "../navigation/types";
 import { toDateKey } from "../utils/dates";
+import { format, parseISO } from "date-fns";
 
 export function SilentDeedsScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const listBottomPadding = getTabBarClearance(insets);
   const [deeds, setDeeds] = useState<SilentDeed[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [category, setCategory] = useState<string>(DEED_CATEGORIES[0]);
   const [note, setNote] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    category: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     const db = await getDatabase();
@@ -53,23 +67,21 @@ export function SilentDeedsScreen() {
     load();
   }
 
-  function handleDelete(id: number) {
-    Alert.alert("Remove deed", "Remove this private entry?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          const db = await getDatabase();
-          await deleteSilentDeed(db, id);
-          load();
-        },
-      },
-    ]);
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    const db = await getDatabase();
+    await deleteSilentDeed(db, deleteTarget.id);
+    setDeleteTarget(null);
+    load();
   }
 
   return (
     <ScreenContainer scroll={false}>
+      <StackBackButton
+        label="More"
+        onPress={() => navigation.navigate("MoreMenu")}
+      />
+
       <SectionHeader
         title="Silent Deeds"
         subtitle="Private acts known only to you and Allah"
@@ -86,7 +98,10 @@ export function SilentDeedsScreen() {
       <SectionList
         sections={sections}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: listBottomPadding },
+        ]}
         ListEmptyComponent={
           <EmptyState
             title="Your hidden good deeds"
@@ -97,15 +112,24 @@ export function SilentDeedsScreen() {
           <Text style={styles.sectionTitle}>{title}</Text>
         )}
         renderItem={({ item }) => (
-          <Pressable
-            onLongPress={() => handleDelete(item.id)}
-            style={styles.deed}
-          >
-            <Text style={styles.deedCategory}>{item.category}</Text>
-            {item.note ? (
-              <Text style={styles.deedNote}>{item.note}</Text>
-            ) : null}
-          </Pressable>
+          <View style={styles.deed}>
+            <View style={styles.deedContent}>
+              <Text style={styles.deedCategory}>{item.category}</Text>
+              {item.note ? (
+                <Text style={styles.deedNote}>{item.note}</Text>
+              ) : null}
+            </View>
+            <Pressable
+              onPress={() =>
+                setDeleteTarget({ id: item.id, category: item.category })
+              }
+              style={styles.deleteBtn}
+              accessibilityLabel="Delete deed"
+              hitSlop={8}
+            >
+              <Trash2 size={20} color={colors.accent.gold} />
+            </Pressable>
+          </View>
         )}
       />
 
@@ -142,6 +166,21 @@ export function SilentDeedsScreen() {
           </View>
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title="Delete deed"
+        message={
+          deleteTarget
+            ? `Remove "${deleteTarget.category}"? This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete"
+        cancelLabel="Keep deed"
+        variant="destructive"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </ScreenContainer>
   );
 }
@@ -154,9 +193,17 @@ function groupByDate(deeds: SilentDeed[]) {
     map.set(deed.date, list);
   }
   return [...map.entries()].map(([date, data]) => ({
-    title: date,
+    title: formatSectionDate(date),
     data,
   }));
+}
+
+function formatSectionDate(dateKey: string): string {
+  try {
+    return format(parseISO(dateKey), "EEEE, MMM d");
+  } catch {
+    return dateKey;
+  }
 }
 
 const styles = StyleSheet.create({
@@ -169,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   list: {
-    paddingBottom: 120,
+    flexGrow: 1,
   },
   sectionTitle: {
     color: colors.text.muted,
@@ -179,12 +226,25 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   deed: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.glass.fill,
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.glass.border,
-    padding: 16,
     marginBottom: 8,
+    overflow: "hidden",
+  },
+  deedContent: {
+    flex: 1,
+    padding: 16,
+    paddingRight: 8,
+  },
+  deleteBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
   deedCategory: {
     color: colors.text.primary,

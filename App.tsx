@@ -14,6 +14,8 @@ import { colors } from "./constants/theme";
 import { useDatabase } from "./hooks/useDatabase";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { useAppStore } from "./store/useAppStore";
+import { useAuthStore } from "./store/useAuthStore";
+import { useEffect } from "react";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -23,7 +25,14 @@ export default function App() {
     Inter_700Bold,
   });
   const dbReady = useAppStore((s) => s.dbReady);
+  const hydrateSession = useAuthStore((s) => s.hydrateSession);
   const { error } = useDatabase();
+
+  useEffect(() => {
+    if (dbReady) {
+      hydrateSession();
+    }
+  }, [dbReady, hydrateSession]);
 
   if (!fontsLoaded || !dbReady) {
     return (

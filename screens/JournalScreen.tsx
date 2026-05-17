@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Plus, Search } from "lucide-react-native";
+import { Plus, Search, Trash2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
@@ -10,14 +10,20 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PillButton } from "../components/ui/PillButton";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { getTabBarClearance } from "../constants/layout";
 import { colors, radii, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import type { JournalEntry } from "../database/repositories/journal";
-import { getJournalEntries } from "../database/repositories/journal";
+import {
+  deleteJournalEntry,
+  getJournalEntries,
+} from "../database/repositories/journal";
 import type { ReflectStackParamList } from "../navigation/types";
 import { format } from "date-fns";
 
@@ -26,9 +32,12 @@ const TAGS = ["all", "gratitude", "dua", "reflection", "goals"] as const;
 export function JournalScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<ReflectStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const listBottomPadding = getTabBarClearance(insets);
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<JournalEntry | null>(null);
 
   const load = useCallback(async () => {
     const db = await getDatabase();
@@ -49,6 +58,14 @@ export function JournalScreen() {
   useEffect(() => {
     load();
   }, [activeTag]);
+
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    const db = await getDatabase();
+    await deleteJournalEntry(db, deleteTarget.id);
+    setDeleteTarget(null);
+    load();
+  }
 
   return (
     <ScreenContainer scroll={false}>
@@ -93,7 +110,10 @@ export function JournalScreen() {
       <FlatList
         data={entries}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: listBottomPadding },
+        ]}
         ListEmptyComponent={
           <EmptyState
             title="Your journal awaits"
@@ -101,23 +121,48 @@ export function JournalScreen() {
           />
         }
         renderItem={({ item }) => (
-          <Pressable
-            onPress={() =>
-              navigation.navigate("JournalEditor", { entryId: item.id })
-            }
-            style={styles.entry}
-          >
-            <Text style={styles.entryTitle}>
-              {item.title || "Untitled reflection"}
-            </Text>
-            <Text style={styles.entryPreview} numberOfLines={2}>
-              {item.body}
-            </Text>
-            <Text style={styles.entryDate}>
-              {format(new Date(item.updated_at), "MMM d, yyyy")}
-            </Text>
-          </Pressable>
+          <View style={styles.entry}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("JournalEditor", { entryId: item.id })
+              }
+              style={styles.entryContent}
+            >
+              <Text style={styles.entryTitle}>
+                {item.title || "Untitled reflection"}
+              </Text>
+              <Text style={styles.entryPreview} numberOfLines={2}>
+                {item.body}
+              </Text>
+              <Text style={styles.entryDate}>
+                {format(new Date(item.updated_at), "MMM d, yyyy")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setDeleteTarget(item)}
+              style={styles.deleteBtn}
+              accessibilityLabel="Delete entry"
+              hitSlop={8}
+            >
+              <Trash2 size={20} color={colors.accent.gold} />
+            </Pressable>
+          </View>
         )}
+      />
+
+      <ConfirmDialog
+        visible={!!deleteTarget}
+        title="Delete entry"
+        message={
+          deleteTarget
+            ? `Remove "${deleteTarget.title || "Untitled reflection"}"? This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete"
+        cancelLabel="Keep entry"
+        variant="destructive"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
       />
     </ScreenContainer>
   );
@@ -160,15 +205,27 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: spacing.md,
-    paddingBottom: 120,
   },
   entry: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.glass.fill,
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.glass.border,
-    padding: 18,
     marginBottom: 12,
+    overflow: "hidden",
+  },
+  entryContent: {
+    flex: 1,
+    padding: 18,
+    paddingRight: 8,
+  },
+  deleteBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
   entryTitle: {
     color: colors.text.primary,

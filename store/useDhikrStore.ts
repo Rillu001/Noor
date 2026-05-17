@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { DEFAULT_PHRASES } from "../database/repositories/dhikr";
+import type { DhikrDayStat } from "../database/repositories/dhikr";
 import { getDatabase } from "../database/client";
 import * as dhikrRepo from "../database/repositories/dhikr";
 import { toDateKey } from "../utils/dates";
@@ -9,9 +10,13 @@ type DhikrState = {
   targetCount: number;
   currentCount: number;
   phrases: string[];
+  weekTotal: number;
+  allTimeTotal: number;
+  weeklyStats: DhikrDayStat[];
   setPhrase: (phrase: string) => void;
   setTargetCount: (count: number) => void;
   hydrate: (date?: string) => Promise<void>;
+  hydrateStats: () => Promise<void>;
   increment: (date?: string) => Promise<void>;
   reset: (date?: string) => Promise<void>;
 };
@@ -21,6 +26,9 @@ export const useDhikrStore = create<DhikrState>((set, get) => ({
   targetCount: 33,
   currentCount: 0,
   phrases: DEFAULT_PHRASES,
+  weekTotal: 0,
+  allTimeTotal: 0,
+  weeklyStats: [],
 
   setPhrase: (phrase) => {
     set({ phrase });
@@ -48,6 +56,17 @@ export const useDhikrStore = create<DhikrState>((set, get) => ({
       currentCount: session?.current_count ?? 0,
       targetCount: session?.target_count ?? targetCount,
     });
+    await get().hydrateStats();
+  },
+
+  hydrateStats: async () => {
+    const db = await getDatabase();
+    const [weeklyStats, weekTotal, allTimeTotal] = await Promise.all([
+      dhikrRepo.getDhikrWeeklyStats(db),
+      dhikrRepo.getDhikrWeekTotal(db),
+      dhikrRepo.getDhikrAllTimeTotal(db),
+    ]);
+    set({ weeklyStats, weekTotal, allTimeTotal });
   },
 
   increment: async (date = toDateKey()) => {
@@ -55,6 +74,7 @@ export const useDhikrStore = create<DhikrState>((set, get) => ({
     const { phrase, targetCount } = get();
     const count = await dhikrRepo.incrementDhikr(db, phrase, date, targetCount);
     set({ currentCount: count });
+    await get().hydrateStats();
   },
 
   reset: async (date = toDateKey()) => {
@@ -62,5 +82,6 @@ export const useDhikrStore = create<DhikrState>((set, get) => ({
     const { phrase, targetCount } = get();
     await dhikrRepo.resetDhikrForDate(db, phrase, date, targetCount);
     set({ currentCount: 0 });
+    await get().hydrateStats();
   },
 }));
