@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
+import { Trash2 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -8,10 +9,12 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { colors, radii, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import {
+  deleteJournalEntry,
   getJournalEntry,
   saveJournalEntry,
 } from "../database/repositories/journal";
@@ -27,6 +30,7 @@ export function JournalEditorScreen() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string>("reflection");
+  const [deleteVisible, setDeleteVisible] = useState(false);
 
   useEffect(() => {
     if (entryId) loadEntry();
@@ -53,15 +57,35 @@ export function JournalEditorScreen() {
     navigation.goBack();
   }
 
+  async function handleDeleteConfirm() {
+    if (!entryId) return;
+    const db = await getDatabase();
+    await deleteJournalEntry(db, entryId);
+    setDeleteVisible(false);
+    navigation.goBack();
+  }
+
   return (
     <ScreenContainer scroll={false}>
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.cancel}>Cancel</Text>
         </Pressable>
-        <Pressable onPress={handleSave}>
-          <Text style={styles.save}>Save</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          {entryId ? (
+            <Pressable
+              onPress={() => setDeleteVisible(true)}
+              style={styles.deleteBtn}
+              accessibilityLabel="Delete entry"
+            >
+              <Trash2 size={20} color={colors.accent.gold} />
+              <Text style={styles.delete}>Delete</Text>
+            </Pressable>
+          ) : null}
+          <Pressable onPress={handleSave}>
+            <Text style={styles.save}>Save</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.tags}>
@@ -96,6 +120,17 @@ export function JournalEditorScreen() {
         textAlignVertical="top"
         autoFocus={!entryId}
       />
+
+      <ConfirmDialog
+        visible={deleteVisible}
+        title="Delete entry"
+        message="Remove this reflection permanently?"
+        confirmLabel="Delete"
+        cancelLabel="Keep entry"
+        variant="destructive"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteVisible(false)}
+      />
     </ScreenContainer>
   );
 }
@@ -103,8 +138,26 @@ export function JournalEditorScreen() {
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     marginBottom: spacing.lg,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  delete: {
+    color: colors.accent.gold,
+    fontSize: 16,
+    fontWeight: "600",
   },
   cancel: {
     color: colors.text.muted,

@@ -1,10 +1,13 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import type { MoreStackParamList } from "../navigation/types";
 import { insightTemplates } from "../constants/insights";
 import { colors, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
@@ -14,6 +17,8 @@ import { usePrayerStore } from "../store/usePrayerStore";
 const chartWidth = Dimensions.get("window").width - 48;
 
 export function InsightsScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { weeklyStats, hydrate } = usePrayerStore();
   const [topHabits, setTopHabits] = useState<{ title: string; streak: number }[]>(
     []
@@ -59,6 +64,10 @@ export function InsightsScreen() {
 
   return (
     <ScreenContainer>
+      <StackBackButton
+        label="More"
+        onPress={() => navigation.navigate("MoreMenu")}
+      />
       <SectionHeader
         title="Weekly Insights"
         subtitle="A calm look at your spiritual rhythm"

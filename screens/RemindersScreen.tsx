@@ -1,4 +1,5 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useState } from "react";
 import {
   Alert,
@@ -11,6 +12,8 @@ import {
 import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { StackBackButton } from "../components/ui/StackBackButton";
+import type { MoreStackParamList } from "../navigation/types";
 import { colors, spacing } from "../constants/theme";
 import { getDatabase } from "../database/client";
 import type { ReminderSettings } from "../database/repositories/reminders";
@@ -30,6 +33,8 @@ import {
 const HOURS = [6, 7, 8, 9, 12, 18, 20, 21];
 
 export function RemindersScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
   const notificationsUnavailable = getNotificationsUnavailableReason();
 
@@ -90,6 +95,10 @@ export function RemindersScreen() {
 
   return (
     <ScreenContainer>
+      <StackBackButton
+        label="More"
+        onPress={() => navigation.navigate("MoreMenu")}
+      />
       <SectionHeader
         title="Gentle Reminders"
         subtitle="Warm encouragement, never guilt"

@@ -30,6 +30,13 @@ export type TabParamList = {
   More: NavigatorScreenParams<MoreStackParamList>;
 };
 
+export type AuthStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  Register: undefined;
+};
+
 export type RootStackParamList = {
+  Auth: undefined;
   MainTabs: NavigatorScreenParams<TabParamList>;
 };

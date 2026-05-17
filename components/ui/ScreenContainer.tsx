@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode } from "react";
 import { ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getTabBarClearance } from "../../constants/layout";
 import { colors, spacing } from "../../constants/theme";
 
 type ScreenContainerProps = {
@@ -18,6 +19,7 @@ export function ScreenContainer({
   refreshControl,
 }: ScreenContainerProps) {
   const insets = useSafeAreaInsets();
+  const bottomPadding = getTabBarClearance(insets);
 
   const inner = (
     <View
@@ -41,13 +43,19 @@ export function ScreenContainer({
       {scroll ? (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scroll, contentContainerStyle]}
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingBottom: bottomPadding },
+            contentContainerStyle,
+          ]}
           refreshControl={refreshControl}
         >
           {inner}
         </ScrollView>
       ) : (
-        inner
+        <View style={[styles.innerFill, { paddingBottom: bottomPadding }]}>
+          {inner}
+        </View>
       )}
     </View>
   );
@@ -59,9 +67,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.primary,
   },
   scroll: {
-    paddingBottom: 120,
+    flexGrow: 1,
   },
   inner: {
+    flex: 1,
+  },
+  innerFill: {
     flex: 1,
   },
   padded: {
