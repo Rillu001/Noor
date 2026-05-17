@@ -1,8 +1,8 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
-import { BarChart } from "react-native-chart-kit";
+import { StyleSheet, Text, View } from "react-native";
 import { PrayerCard } from "../components/salah/PrayerCard";
+import { GlassCard } from "../components/ui/GlassCard";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
 import { StreakBadge } from "../components/ui/StreakBadge";
@@ -11,7 +11,7 @@ import { colors, spacing } from "../constants/theme";
 import { usePrayerStore } from "../store/usePrayerStore";
 import { formatDisplayDate } from "../utils/dates";
 
-const chartWidth = Dimensions.get("window").width - 48;
+const CHART_MAX_PERCENT = 100;
 
 export function SalahScreen() {
   const { prayers, streak, weeklyStats, hydrate, toggle } = usePrayerStore();
@@ -21,11 +21,6 @@ export function SalahScreen() {
       hydrate();
     }, [hydrate])
   );
-
-  const chartData = {
-    labels: weeklyStats.map((s) => s.date.slice(8)),
-    datasets: [{ data: weeklyStats.map((s) => s.percent / 100 || 0.01) }],
-  };
 
   const completedCount = Object.values(prayers).filter(Boolean).length;
 
@@ -50,31 +45,33 @@ export function SalahScreen() {
         ))}
       </View>
 
-      <View style={styles.chartSection}>
+      <GlassCard style={styles.chartCard}>
         <Text style={styles.chartTitle}>Weekly consistency</Text>
-        <BarChart
-          data={chartData}
-          width={chartWidth}
-          height={180}
-          yAxisLabel=""
-          yAxisSuffix="%"
-          chartConfig={{
-            backgroundColor: colors.bg.primary,
-            backgroundGradientFrom: colors.bg.elevated,
-            backgroundGradientTo: colors.bg.elevated,
-            decimalPlaces: 0,
-            color: () => colors.accent.gold,
-            labelColor: () => colors.text.muted,
-            barPercentage: 0.6,
-            propsForBackgroundLines: {
-              stroke: colors.glass.border,
-            },
-          }}
-          style={styles.chart}
-          fromZero
-          showValuesOnTopOfBars={false}
-        />
-      </View>
+        <Text style={styles.chartSubtitle}>Each bar = prayers completed that day (out of 5)</Text>
+        <View style={styles.weekChart}>
+          {weeklyStats.map((day) => (
+            <View key={day.date} style={styles.dayCol}>
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    {
+                      height: `${Math.max(
+                        day.percent > 0 ? 6 : 0,
+                        (day.percent / CHART_MAX_PERCENT) * 100
+                      )}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.dayLabel}>{day.label}</Text>
+              <Text style={styles.dayCount}>
+                {day.completed}/5
+              </Text>
+            </View>
+          ))}
+        </View>
+      </GlassCard>
     </ScreenContainer>
   );
 }
@@ -89,18 +86,56 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
-  chartSection: {
-    marginTop: spacing.md,
+  chartCard: {
+    marginTop: spacing.sm,
   },
   chartTitle: {
     color: colors.text.primary,
     fontSize: 17,
     fontWeight: "600",
+    marginBottom: 4,
+  },
+  chartSubtitle: {
+    color: colors.text.dim,
+    fontSize: 12,
     marginBottom: spacing.md,
   },
-  chart: {
-    borderRadius: 16,
+  weekChart: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  dayCol: {
+    flex: 1,
+    alignItems: "center",
+  },
+  barTrack: {
+    width: "100%",
+    height: 100,
+    backgroundColor: colors.glass.border,
+    borderRadius: 6,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+    marginBottom: 6,
+  },
+  barFill: {
+    width: "100%",
+    backgroundColor: colors.accent.gold,
+    borderRadius: 6,
+    minHeight: 0,
+  },
+  dayLabel: {
+    color: colors.text.dim,
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  dayCount: {
+    color: colors.text.muted,
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: "600",
   },
 });

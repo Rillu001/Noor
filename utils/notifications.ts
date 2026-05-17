@@ -80,7 +80,7 @@ export async function scheduleDailyReminder(
 
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: "Noor",
+      title: "Ihsania",
       body,
       subtitle: quote?.source ?? undefined,
       sound: false,

@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BrandMark } from "../../components/ui/BrandMark";
 import { getScreenTopPadding } from "../../constants/layout";
 import { authButtons } from "../../constants/authButtons";
 import { colors, spacing } from "../../constants/theme";
@@ -22,8 +23,7 @@ export function WelcomeScreen() {
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.content}>
-        <Text style={styles.brand}>Noor</Text>
-        <Text style={styles.tagline}>Your peaceful companion</Text>
+        <BrandMark size="lg" showTagline />
         <Text style={styles.description}>
           Track salah, dhikr, habits, and private reflections — with calm and
           sincerity.
@@ -57,18 +57,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: "center",
-  },
-  brand: {
-    color: colors.text.primary,
-    fontSize: 48,
-    fontWeight: "700",
-    letterSpacing: -1,
-  },
-  tagline: {
-    color: colors.accent.gold,
-    fontSize: 18,
-    fontWeight: "500",
-    marginTop: spacing.sm,
   },
   description: {
     color: colors.text.muted,

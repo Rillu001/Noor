@@ -6,6 +6,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ScreenContainer } from "../components/ui/ScreenContainer";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { BrandMark } from "../components/ui/BrandMark";
+import { BRAND_TAGLINE } from "../constants/brand";
 import { colors, radii, spacing } from "../constants/theme";
 import type { MoreStackParamList } from "../navigation/types";
 import { useAuthStore } from "../store/useAuthStore";
@@ -76,8 +78,8 @@ export function MoreMenuScreen() {
       </Pressable>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Noor</Text>
-        <Text style={styles.footerSub}>Your peaceful companion</Text>
+        <BrandMark size="sm" style={styles.footerBrand} />
+        <Text style={styles.footerSub}>{BRAND_TAGLINE}</Text>
       </View>
 
       <ConfirmDialog
@@ -142,10 +144,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xxl,
     paddingBottom: spacing.xl,
   },
-  footerText: {
-    color: colors.accent.gold,
-    fontSize: 20,
-    fontWeight: "700",
+  footerBrand: {
+    alignItems: "center",
   },
   footerSub: {
     color: colors.text.dim,

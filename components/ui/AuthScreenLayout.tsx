@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BrandMark } from "./BrandMark";
 import { getScreenTopPadding } from "../../constants/layout";
 import { colors, radii, spacing } from "../../constants/theme";
 
@@ -49,7 +50,7 @@ export function AuthScreenLayout({
       >
         <View style={[styles.inner, { paddingTop: topPadding }]}>
           <View style={styles.hero}>
-            <Text style={styles.brand}>Noor</Text>
+            <BrandMark size="md" />
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>
           </View>
@@ -77,14 +78,6 @@ const styles = StyleSheet.create({
   },
   hero: {
     marginBottom: spacing.lg,
-  },
-  brand: {
-    color: colors.accent.gold,
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    marginBottom: spacing.sm,
   },
   title: {
     color: colors.text.primary,

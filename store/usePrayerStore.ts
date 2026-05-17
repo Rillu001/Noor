@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { PrayerName } from "../constants/prayers";
 import { PRAYERS } from "../constants/prayers";
 import { getDatabase } from "../database/client";
+import type { PrayerDayStat } from "../database/repositories/prayers";
 import * as prayerRepo from "../database/repositories/prayers";
 import { computeStreak } from "../utils/streaks";
 import { toDateKey } from "../utils/dates";
@@ -9,7 +10,7 @@ import { toDateKey } from "../utils/dates";
 type PrayerState = {
   prayers: Record<PrayerName, boolean>;
   streak: number;
-  weeklyStats: { date: string; percent: number }[];
+  weeklyStats: PrayerDayStat[];
   loading: boolean;
   hydrate: (date?: string) => Promise<void>;
   toggle: (name: PrayerName, date?: string) => Promise<void>;
