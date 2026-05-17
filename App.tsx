@@ -10,6 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { BrandMark } from "./components/ui/BrandMark";
 import { colors } from "./constants/theme";
 import { useDatabase } from "./hooks/useDatabase";
 import { RootNavigator } from "./navigation/RootNavigator";
@@ -37,7 +38,7 @@ export default function App() {
   if (!fontsLoaded || !dbReady) {
     return (
       <View style={styles.loading}>
-        <Text style={styles.logo}>Noor</Text>
+        <BrandMark size="lg" style={styles.logo} />
         <ActivityIndicator color={colors.accent.gold} style={styles.spinner} />
         {error ? (
           <Text style={styles.error}>{error.message}</Text>
@@ -68,10 +69,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    color: colors.text.primary,
-    fontSize: 36,
-    fontWeight: "700",
-    letterSpacing: -1,
     marginBottom: 24,
   },
   spinner: {

@@ -40,7 +40,7 @@ export function LoginScreen() {
   return (
     <AuthScreenLayout
       title="Welcome back"
-      subtitle="Sign in to continue your peaceful journey"
+      subtitle="Sign in to continue your journey with sincerity"
       footer={
         <Pressable onPress={() => navigation.navigate("Register")}>
           <Text style={styles.switchText}>

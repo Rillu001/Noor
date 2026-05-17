@@ -1,6 +1,14 @@
+import { format, parseISO } from "date-fns";
 import type { SQLiteDatabase } from "expo-sqlite";
 import type { PrayerName } from "../../constants/prayers";
 import { getLastNDays, toDateKey } from "../../utils/dates";
+
+export type PrayerDayStat = {
+  date: string;
+  label: string;
+  percent: number;
+  completed: number;
+};
 
 export type PrayerLog = {
   prayer_name: PrayerName;
@@ -47,20 +55,25 @@ export async function togglePrayer(
 
 export async function getWeeklyPrayerStats(
   db: SQLiteDatabase
-): Promise<{ date: string; percent: number }[]> {
+): Promise<PrayerDayStat[]> {
   const days = getLastNDays(7);
-  const stats: { date: string; percent: number }[] = [];
+  const stats: PrayerDayStat[] = [];
 
   for (const date of days) {
-    const row = await db.getFirstAsync<{ total: number; done: number }>(
-      `SELECT COUNT(*) as total,
-        SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as done
+    const row = await db.getFirstAsync<{ done: number }>(
+      `SELECT COALESCE(SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END), 0) as done
        FROM prayer_logs WHERE date = ?`,
       [date]
     );
-    const done = row?.done ?? 0;
-    const percent = Math.round((done / 5) * 100);
-    stats.push({ date, percent });
+    const completed = Number(row?.done ?? 0);
+    const percent = Math.round((completed / 5) * 100);
+    let label = date;
+    try {
+      label = format(parseISO(date), "EEE");
+    } catch {
+      // keep date key as label
+    }
+    stats.push({ date, label, percent, completed });
   }
   return stats;
 }

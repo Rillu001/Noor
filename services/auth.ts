@@ -2,7 +2,7 @@ import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import type { SQLiteDatabase } from "expo-sqlite";
 
-const SESSION_KEY = "noor_session_user_id";
+const SESSION_KEY = "ihsania_session_user_id";
 
 export type AuthUser = {
   id: number;

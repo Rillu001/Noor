@@ -1,6 +1,6 @@
-# Sakeena
+# Ihsania
 
-A modern, peaceful Islamic habit tracker and self-improvement companion for Muslims. Built with Expo React Native.
+**Ihsania** — inspired by *Ihsan* (excellence, sincerity, spiritual beauty). A peaceful Islamic habit tracker for prayer, dhikr, habits, and spiritual growth. Built with Expo React Native.
 
 ## Features (MVP)
 
